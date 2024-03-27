@@ -23,7 +23,7 @@ if token:
     for song in range(5):
         list = []
         list.append(results)
-        with open('top50_data.json', 'w', encoding='utf-8') as f:
+        with open('output/top5_data.json', 'w', encoding='utf-8') as f:
             json.dump(list, f, ensure_ascii=False, indent=4)
 else:
     print("Can't get token for", username)

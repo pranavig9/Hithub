@@ -3,7 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sb
 
-with open('top5_data.json') as f:
+with open('output/top5_data.json') as f:
   data = json.load(f)
 
 list_of_results = data[0]["items"]
@@ -47,7 +47,7 @@ top5 = pd.DataFrame(
      
     })
 
-all_songs_saved = top5.to_csv('top5_songs.csv')
+all_songs_saved = top5.to_csv('output/top5_songs.csv')
 
 # how many top songs came from each artist represented in the top 5 tracks
 descending_order = top5['artist'].value_counts().sort_values(ascending=False).index
@@ -67,4 +67,4 @@ y = top5['artist'].value_counts()
 for i, v in enumerate(y):
     ax.text(v + 0.2, i + .16, str(v), color='black', fontweight='light', fontsize=14)
     
-plt.savefig('top5_songs_per_artist.jpg', bbox_inches="tight")
+plt.savefig('output/top5_songs_per_artist.jpg', bbox_inches="tight")
