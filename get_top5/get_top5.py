@@ -5,9 +5,10 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import spotipy.util as util
 
+cid = 'a5d401307f35454584cca6ea288c0a63'
+secret = '00b13f2157c64c04ac8c1e320787a107'
+
 def get_top5():
-    cid = 'a5d401307f35454584cca6ea288c0a63'
-    secret = '00b13f2157c64c04ac8c1e320787a107'
 
     os.environ['SPOTIPY_CLIENT_ID']= cid
     os.environ['SPOTIPY_CLIENT_SECRET']= secret
