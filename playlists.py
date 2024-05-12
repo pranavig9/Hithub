@@ -6,6 +6,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import spotipy.util as util
 import get_top5 as g
 from collections import Counter
+import top5_sentiment as ts
 
 os.environ['SPOTIPY_CLIENT_ID']= g.cid
 os.environ['SPOTIPY_CLIENT_SECRET']= g.secret
@@ -56,8 +57,32 @@ def read_dataset(fp):
   songs = pd.read_csv(fp)
   return songs
 
-data = read_dataset('consolidated_data.csv')
+data = read_dataset('spotify_millsongdata.csv')
 
 
 total_tracks, popularity, artists = playlists(total_tracks, popularity, artists)
 most_common_artist(artists)
+
+spotify_recs = sp.recommendations(seed_tracks=g.list_of_song_uri, limit = 25)
+
+#print(spotify_recs)
+
+lyrics = []
+
+list_of_results = spotify_recs["tracks"]
+list_of_artist_names = []
+list_of_song_names = []
+
+for result in list_of_results:
+    this_artists_name = result["artists"][0]["name"]
+    list_of_artist_names.append(this_artists_name)
+    this_song_name = result["name"]
+    list_of_song_names.append(this_song_name)
+
+for i in range(len(list_of_artist_names)):
+    lyrics.append(ts.scrape_lyrics(list_of_artist_names[i], list_of_song_names[i]))
+
+lyrics = ts.lyrics_onto_frame(list_of_artist_names, list_of_song_names)
+
+sent = ts.sentiment(lyrics)
+print(sent)
