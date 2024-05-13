@@ -5,7 +5,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import spotipy.util as util
 
 cid = 'a5d401307f35454584cca6ea288c0a63'
-secret = '17bc6bd47c034d0aaed43e2d75d57c72'
+secret = '00b13f2157c64c04ac8c1e320787a107'
 
 os.environ['SPOTIPY_CLIENT_ID']= cid
 os.environ['SPOTIPY_CLIENT_SECRET']= secret
@@ -23,7 +23,7 @@ if token:
     for song in range(5):
         list = []
         list.append(results)
-        with open('top50_data.json', 'w', encoding='utf-8') as f:
+        with open('top5_data.json', 'w', encoding='utf-8') as f:
             json.dump(list, f, ensure_ascii=False, indent=4)
 else:
     print("Can't get token for", username)
