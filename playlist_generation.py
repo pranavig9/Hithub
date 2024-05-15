@@ -25,7 +25,9 @@ chosen_songs = ['Soldiers', 'Sleigh Ride', 'Shimmy Down The Chimney (Fill Up My 
 # Find similar songs for each chosen song
 for song_name in chosen_songs:
     try:
+        # if song name is not there then, use a song from the same artist, else levenstein distance metric closest song in dataset
         song_index = songs[songs['song'] == song_name].index[0]
+
         similar_songs = find_similar_songs(song_index)
         print(f"Similar songs for '{song_name}':")
         print(similar_songs[['artist', 'song', 'link']])
