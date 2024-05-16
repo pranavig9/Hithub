@@ -11,7 +11,6 @@ from nltk.corpus import words
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import matplotlib.pyplot as plt
 
-
 df = pd.read_csv('output/top5_songs.csv')
 data = gp.read_dataset('spotify_millsongdata.csv')
 
@@ -134,6 +133,8 @@ def graph_sentiment(sentiment_results):
 
         # Save the graph as an image file
         plt.savefig('top5_sentiment_analysis.png')
+
+
 
 if __name__ == "__main__":
     sentiment_results = sentiment(top5_lyrics)
