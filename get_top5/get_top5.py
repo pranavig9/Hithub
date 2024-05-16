@@ -46,6 +46,7 @@ def json_to_csv():
     list_of_explicit = []
     list_of_albums = []
     list_of_popularity = []
+    list_of_track_ids = []
 
     for result in list_of_results:
         result["album"]
@@ -65,6 +66,8 @@ def json_to_csv():
         list_of_albums.append(this_album)
         song_popularity = result["popularity"]
         list_of_popularity.append(song_popularity)
+        track_id = result["id"]
+        list_of_track_ids.append(track_id)
 
     top5 = pd.DataFrame(
         {'artist': list_of_artist_names,
@@ -74,9 +77,11 @@ def json_to_csv():
         'duration_ms': list_of_durations_ms,
         'explicit': list_of_explicit,
         'album': list_of_albums,
-        'popularity': list_of_popularity
-        
+        'popularity': list_of_popularity,
+        'track_id': track_id
         })
+
+    print(list_of_track_ids)
 
     all_songs_saved = top5.to_csv('output/top5_songs.csv')
 

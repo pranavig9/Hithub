@@ -17,11 +17,11 @@ sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 scope = 'user-top-read'
 token = util.prompt_for_user_token(username, scope)
 
-def playlists():
+total_tracks = []
+popularity = []
+artists = []
 
-    total_tracks = []
-    popularity = []
-    artists = []
+def playlists(total_tracks, popularity, artists):
 
     playlists = sp.current_user_playlists(limit=50, offset=0)
     for i in playlists['items']:
@@ -50,9 +50,14 @@ def get_songs(username, playlist_id, sp):
 
 def most_common_artist(artists): 
     most_common_element, count = Counter(artists).most_common(1)[0]
-    print(most_common_element, count)
 
 
-if __name__ == "__main__":
-    total_tracks, popularity, artists = playlists()
-    most_common_artist(artists)
+def read_dataset(fp):
+  songs = pd.read_csv(fp)
+  return songs
+
+data = read_dataset('spotify_millsongdata.csv')
+
+
+total_tracks, popularity, artists = playlists(total_tracks, popularity, artists)
+most_common_artist(artists)
