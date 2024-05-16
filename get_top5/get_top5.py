@@ -22,25 +22,25 @@ def get_top5():
     if token:
         sp = spotipy.Spotify(auth=token)
         results = sp.current_user_top_tracks(limit=5,offset=0,time_range='medium_term')
-        for song in range(5):
-            list = []
-            list.append(results)
-            if os.path.exists('output/top5_data.json'):
-                os.remove('output/top5_data.json')
-            with open('output/top5_data.json', 'w', encoding='utf-8') as f:
-                json.dump(list, f, ensure_ascii=False, indent=4)
+        list = []
+        list.append(results)
+        if os.path.exists('output/top5_data.json'):
+            os.remove('output/top5_data.json')
+        with open('output/top5_data.json', 'w', encoding='utf-8') as f:
+            json.dump(list, f, ensure_ascii=False, indent=4)
     else:
         print("Can't get token for", username)
 
-def json_to_csv():
+    return sp
+
+def json_to_csv(sp):
     with open('output/top5_data.json') as f:
         data = json.load(f)
 
     list_of_results = data[0]["items"]
+    list_of_ids = []
     list_of_artist_names = []
-    list_of_artist_uri = []
     list_of_song_names = []
-    list_of_song_uri = []
     list_of_durations_ms = []
     list_of_explicit = []
     list_of_albums = []
@@ -48,14 +48,12 @@ def json_to_csv():
 
     for result in list_of_results:
         result["album"]
+        song_id = result['id']
+        list_of_ids.append(song_id)
         this_artists_name = result["artists"][0]["name"]
         list_of_artist_names.append(this_artists_name)
-        this_artists_uri = result["artists"][0]["uri"]
-        list_of_artist_uri.append(this_artists_uri)
         list_of_songs = result["name"]
         list_of_song_names.append(list_of_songs)
-        song_uri = result["uri"]
-        list_of_song_uri.append(song_uri)
         list_of_duration = result["duration_ms"]
         list_of_durations_ms.append(list_of_duration)
         song_explicit = result["explicit"]
@@ -66,19 +64,43 @@ def json_to_csv():
         list_of_popularity.append(song_popularity)
 
     top5 = pd.DataFrame(
-        {'artist': list_of_artist_names,
-        'artist_uri': list_of_artist_uri,
+        {'id': list_of_ids,
+        'artist': list_of_artist_names,
         'song': list_of_song_names,
-        'song_uri': list_of_song_uri,
         'duration_ms': list_of_durations_ms,
         'explicit': list_of_explicit,
         'album': list_of_albums,
         'popularity': list_of_popularity
-        
         })
 
-    all_songs_saved = top5.to_csv('output/top5_songs.csv')
+    audio = []
+    for ids in top5['id']:
+        try : 
+            results = sp.audio_features(ids)
+            audio_data = {
+                'id':ids,
+                'danceability':results[0]['danceability'],
+                'energy':results[0]['energy'],
+                'key':results[0]["key"],
+                'loudness': results[0]["loudness"],
+                'mode':results[0]['mode'],
+                'speechiness':results[0]['speechiness'],
+                'acousticness': results[0]['acousticness'],
+                'instrumentalness':results[0]['instrumentalness'],
+                'liveness':results[0]['liveness'],
+                'valence':results[0]['valence'],
+                'tempo':results[0]['tempo'],
+                'time_signature' : results[0]['time_signature']
+            }
+            audio.append(audio_data)
+        except : 
+            print('cant')
+        
+    audio_data = pd.DataFrame(audio)
+    top5 = pd.merge(audio_data, top5, on='id')
+
+    top5.to_csv('output/top5_songs.csv')
 
 if __name__ == "__main__":
-    get_top5()
-    json_to_csv()
+    sp = get_top5()
+    json_to_csv(sp)
