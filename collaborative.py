@@ -10,7 +10,7 @@ def scrape_data(artistname, songname):
     # songname2 = str(songname.replace(' ','-')) if ' ' in songname else str(songname)
     songname2 = str(re.sub(r'[^a-zA-Z0-9\s]', '', songname).lower().replace(" ", "-")) if ' ' in songname else str(songname)
     page = requests.get('https://genius.com/'+ artistname2 + '-' + songname2 + '-' + 'lyrics')
-    print('https://genius.com/'+ artistname2 + '-' + songname2 + '-' + 'lyrics')
+    # print('https://genius.com/'+ artistname2 + '-' + songname2 + '-' + 'lyrics')
     html = BeautifulSoup(page.text, 'html.parser')
     lyrics_divs = html.find_all('div', {'data-lyrics-container': 'true'})
     if lyrics_divs:
@@ -46,21 +46,9 @@ def string_to_number(s):
         number *= suffixes[suffix]
     return number
 
-def scrape_lyrics(artistname, songname):
-    artistname2 = str(artistname.replace(' ','-')) if ' ' in artistname else str(artistname)
-    songname2 = str(songname.replace(' ','-')) if ' ' in songname else str(songname)
-    page = requests.get('https://genius.com/'+ artistname2 + '-' + songname2 + '-' + 'lyrics')
-    html = BeautifulSoup(page.text, 'html.parser')
-    lyrics_divs = html.find_all('div', {'data-lyrics-container': 'true'})
-    if lyrics_divs:
-        lyrics_text = [div.get_text(strip=False) for div in lyrics_divs]
-    lyrics_text = ' '.join(lyrics_text)
-    return lyrics_text
-
 
 
 # scrape_data("Taylor Swift", "cardigan")
 # print(scrape_lyrics("Kendrick Lamar", "Not Like Us"))
-scrape_data("Kendrick Lamar", "Not Like Us")
-scrape_data("Olivia Rodrigo", "bad idea right?")
-    
+# scrape_data("Kendrick Lamar", "Not Like Us")
+# scrape_data("Olivia Rodrigo", "bad idea right?"
