@@ -13,16 +13,19 @@ nltk.download('stopwords')
 nltk.download('punkt')
 nltk.download('wordnet')
 
-songs = pd.read_csv("spotify_millsongdata.csv")
+songs = pd.read_csv("consolidated_data.csv")
 
 stop_words = set(stopwords.words('english'))
 lemmatizer = WordNetLemmatizer()
 
-def generateDaylistTitle(song_names):
+def generateDaylistTitle(song_names, songs):
     preprocessed_songs = []
 
     for sname in song_names:
-        lyrics = songs[songs['song']==sname]['text'].values[0]
+        try:
+            lyrics = songs[songs['song']==sname]['lyrics'].value[0]
+        except:
+            lyrics = sname
         words = word_tokenize(lyrics.lower())
         filtered_words = [lemmatizer.lemmatize(word) for word in words if word.isalpha() and word not in stop_words]
         preprocessed_songs.append(" ".join(filtered_words))
@@ -50,5 +53,5 @@ def generateDaylistTitle(song_names):
     title = ' '.join(list(representative_words)[:5])
     return title
 
-song_names = ['Soldiers', 'Sleigh Ride', 'Shimmy Down The Chimney (Fill Up My Stocking)', 'Winter Things', 'A Very Bieber Christmas']
-print(generateDaylistTitle(song_names))
+# song_names = ['Soldiers', 'Sleigh Ride', 'Shimmy Down The Chimney (Fill Up My Stocking)', 'Winter Things', 'A Very Bieber Christmas']
+# print(generateDaylistTitle(song_names))

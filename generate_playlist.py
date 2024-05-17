@@ -4,6 +4,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from bs4 import BeautifulSoup
 import requests
+import re
 
 class ContentBasedRecommender:
     def __init__(self, matrix):
@@ -34,17 +35,22 @@ def read_dataset(fp):
 
 def scrape_lyrics(artistname, songname):
     artistname2 = str(artistname.replace(' ','-')) if ' ' in artistname else str(artistname)
-    songname2 = str(songname.replace(' ','-')) if ' ' in songname else str(songname)
+    songname2 = str(re.sub(r'[^a-zA-Z0-9\s]', '', songname).lower().replace(" ", "-")) if ' ' in songname else str(songname)
     page = requests.get('https://genius.com/'+ artistname2 + '-' + songname2 + '-' + 'lyrics')
+    print('https://genius.com/'+ artistname2 + '-' + songname2 + '-' + 'lyrics')
     html = BeautifulSoup(page.text, 'html.parser')
     lyrics1 = html.find("div", class_="lyrics")
     lyrics2 = html.find("div", class_="Lyrics__Container-sc-1ynbvzw-2 jgQsqn")
+    lyrics3 = html.find('div', {'data-lyrics-container': 'true', 'class': 'Lyrics__Container-sc-1ynbvzw-1 kUgSbL'})
     if lyrics1:
         lyrics = lyrics1.get_text()
     elif lyrics2:
         lyrics = lyrics2.get_text()
-    elif lyrics1 == lyrics2 == None:
+    elif lyrics3:
+       lyrics = lyrics3.get_text()
+    else:
         lyrics = None
+    # print(lyrics)
     return lyrics
 
 def recommend_songs(data, rec):
@@ -73,4 +79,4 @@ if __name__ == "__main__":
     "number_songs": 3
   }
   recommended_songs = recommend_songs(data, rec)
-  print(recommended_songs)
+  # print(recommended_songs)
