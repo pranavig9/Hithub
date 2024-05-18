@@ -14,13 +14,15 @@ if __name__ == "__main__":
     usertop5 = pd.read_csv('output/top5_songs.csv')
     track_data = pd.read_csv("consolidated_data.csv")
     song_names = []
-    print("Pulled top 5 songs")
+    cosine_data = []
+    # print("Pulled top 5 songs")
     for _, song in usertop5.iterrows():
         artist = song['artist']
         songname = song['song']
+        cosine_data.append({"song":songname, "artist":artist, "number_songs":1})
         song_names.append(songname)
         match = track_data[(track_data['artist'] == artist) & (track_data['song'] == songname)]
-        print("Updating Dataset as needed")
+        # print("Updating Dataset as needed")
         # print(match)
         if len(match)==0:
             pop = song['popularity']
@@ -37,14 +39,16 @@ if __name__ == "__main__":
             new_row_df = pd.DataFrame(new_row)
             new_row_df.to_csv('consolidated_data.csv', mode='a', header=False, index=False)
         ##USE KNN recommender to generate song titles
-    print("Beginning Recommending Songs")
+    # print("Beginning Recommending Songs")
     playlist_content = song_recs.returnRecommendSongs(track_data)
+    # for d in cosine_data:
+    #     recs = get_data.recommend_songs(track_data, d)
     # print(playlist_content)
         ##USE LDA TOPIC MODELING TO GET LYRICS 
     print("Creating playlist title")
     title = ldatm.generateDaylistTitle(song_names, track_data)
-    print(title)
+    # print(title)
         ##CREATE PLAYLIST
-    print("Creating Playlist")
+    # print("Creating Playlist")
     pull.create_spotify_playlist(title, playlist_content)
 

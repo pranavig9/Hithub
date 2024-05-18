@@ -125,7 +125,7 @@ def create_spotify_playlist(title, playlist_content):
     sp.playlist_add_items(playlist['id'], track_uris)
     
 
-# if __name__ == "__main__":
-#     get_top5()
-#     json_to_csv()
+if __name__ == "__main__":
+    get_top5()
+    json_to_csv()
     # print(get_song_info("espresso","Sabrina Carpenter"))

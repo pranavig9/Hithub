@@ -54,13 +54,13 @@ def scrape_lyrics(artistname, songname):
     return lyrics
 
 def recommend_songs(data, rec):
-  artist = rec["artist name"]
+  artist = rec["artist"]
   song = rec["song"]
-  if song not in data["song"]:
-    lyrics = scrape_lyrics(artist, song)
-    data.loc[len(data.index)] = [artist, song, None, lyrics]
+  # if song not in data["song"]:
+  #   lyrics = scrape_lyrics(artist, song)
+  #   data.loc[len(data.index)] = [artist, song, None, lyrics]
   tf_idf = TfidfVectorizer(analyzer='word', stop_words='english')
-  vectorized_lyrics = tf_idf.fit_transform(data['text'])
+  vectorized_lyrics = tf_idf.fit_transform(data['lyrics'])
   cosine_sim = cosine_similarity(vectorized_lyrics)
   sim = {}
   for i in range(len(cosine_sim)):
@@ -76,7 +76,7 @@ if __name__ == "__main__":
   rec = {
     "song": data['song'].iloc[10],
     "artist name": "",
-    "number_songs": 3
+    "number_songs": 1
   }
   recommended_songs = recommend_songs(data, rec)
   # print(recommended_songs)
