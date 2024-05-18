@@ -33,57 +33,58 @@ def get_top5():
     else:
         print("Can't get token for", username)
 
-def json_to_csv():
-    with open('get_top5/output/top5_data.json') as f:
-        data = json.load(f)
+with open('get_top5/output/top5_data.json') as f:
+    data = json.load(f)
 
-    list_of_results = data[0]["items"]
-    list_of_artist_names = []
-    list_of_artist_uri = []
-    list_of_song_names = []
-    list_of_song_uri = []
-    list_of_durations_ms = []
-    list_of_explicit = []
-    list_of_albums = []
-    list_of_popularity = []
-    list_of_track_ids = []
+list_of_results = data[0]["items"]
+list_of_artist_names = []
+list_of_artist_uri = []
+list_of_song_names = []
+list_of_song_uri = []
+list_of_durations_ms = []
+list_of_explicit = []
+list_of_albums = []
+list_of_popularity = []
+list_of_track_ids = []
 
-    for result in list_of_results:
-        result["album"]
-        this_artists_name = result["artists"][0]["name"]
-        list_of_artist_names.append(this_artists_name)
-        this_artists_uri = result["artists"][0]["uri"]
-        list_of_artist_uri.append(this_artists_uri)
-        list_of_songs = result["name"]
-        list_of_song_names.append(list_of_songs)
-        song_uri = result["uri"]
-        list_of_song_uri.append(song_uri)
-        list_of_duration = result["duration_ms"]
-        list_of_durations_ms.append(list_of_duration)
-        song_explicit = result["explicit"]
-        list_of_explicit.append(song_explicit)
-        this_album = result["album"]["name"]
-        list_of_albums.append(this_album)
-        song_popularity = result["popularity"]
-        list_of_popularity.append(song_popularity)
-        track_id = result["id"]
-        list_of_track_ids.append(track_id)
+for result in list_of_results:
+    result["album"]
+    this_artists_name = result["artists"][0]["name"]
+    list_of_artist_names.append(this_artists_name)
+    this_artists_uri = result["artists"][0]["uri"]
+    list_of_artist_uri.append(this_artists_uri)
+    list_of_songs = result["name"]
+    list_of_song_names.append(list_of_songs)
+    song_uri = result["uri"]
+    list_of_song_uri.append(song_uri)
+    list_of_duration = result["duration_ms"]
+    list_of_durations_ms.append(list_of_duration)
+    song_explicit = result["explicit"]
+    list_of_explicit.append(song_explicit)
+    this_album = result["album"]["name"]
+    list_of_albums.append(this_album)
+    song_popularity = result["popularity"]
+    list_of_popularity.append(song_popularity)
+    track_id = result["id"]
+    list_of_track_ids.append(track_id)
 
-    top5 = pd.DataFrame(
-        {'artist': list_of_artist_names,
-        'artist_uri': list_of_artist_uri,
-        'song': list_of_song_names,
-        'song_uri': list_of_song_uri,
-        'duration_ms': list_of_durations_ms,
-        'explicit': list_of_explicit,
-        'album': list_of_albums,
-        'popularity': list_of_popularity,
-        'track_id': track_id
-        })
+top5 = pd.DataFrame(
+    {'artist': list_of_artist_names,
+    'artist_uri': list_of_artist_uri,
+    'song': list_of_song_names,
+    'song_uri': list_of_song_uri,
+    'duration_ms': list_of_durations_ms,
+    'explicit': list_of_explicit,
+    'album': list_of_albums,
+    'popularity': list_of_popularity,
+    'track_id': track_id
+    })
 
     # print(list_of_track_ids)
 
+def json_to_csv():
     all_songs_saved = top5.to_csv('get_top5/output/top5_songs.csv')
+
 
 def get_song_info(song_name, artist_name):
     # Initialize Spotipy client
