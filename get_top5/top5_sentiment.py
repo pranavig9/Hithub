@@ -5,11 +5,19 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from bs4 import BeautifulSoup
 import requests 
-import playlists as p
 import re
+import nltk
+# nltk.download('stopwords')
+# nltk.download('punkt')
+# nltk.download('wordnet')
 from nltk.corpus import words
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import matplotlib.pyplot as plt
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
+nltk.download('opinion_lexicon') 
+
 
 df = pd.read_csv('output/top5_songs.csv')
 data = gp.read_dataset('spotify_millsongdata.csv')
@@ -52,33 +60,60 @@ def is_english(word):
     english = set(words.words())
     return word.lower() in english
 
+def expand_contractions(text):
+    contractions = {
+    "n't": " not", "gon": "going", "na": "to", "'re": " are", "'s": " is", "'d": " would", "'ll": " will", "ca": "can ",
+    "'t": " not","'ve": " have", "'m": " am", "wan": "want"
+    }
+    pattern = re.compile('({})'.format('|'.join(contractions.keys())), flags=re.IGNORECASE)
+    return pattern.sub(lambda match: contractions[match.group(0).lower()], text)
+
+
 def process_lyrics(lyrics):
+ 
     lyrics = re.sub(r'\[.*?\]', '', lyrics)
     
     lyrics = lyrics.replace('\n', ' ')
 
-    first_word_match = re.match(r'\b(\w+)\b', lyrics)
-    if first_word_match:
-        first_word = first_word_match.group(1)
-        if (not is_english(first_word) or first_word == 'Hum'):
-            return ""
+    
+    lyrics = lyrics.lower()
+
+    lyrics = expand_contractions(lyrics)
+    
+    sentences = re.split(r'(?<=[.!?])\s+', lyrics)
+    
+    lemmatizer = WordNetLemmatizer()
+    stop_words = set(stopwords.words('english'))
     
     lines = []
-    sentences = re.split(r'(?<=[.!?])\s+', lyrics)
     
     for s in sentences:
         s = re.sub(r'\([^()]*\)', '', s).strip()
         if not s:
             continue
+        
+        words = word_tokenize(s)
+        
+        new_words = [
+            lemmatizer.lemmatize(word) for word in words if word not in stop_words
+        ]
 
-        if not s.endswith((".", "?", "!")):
-            sentences += "."
- 
-        s = s.capitalize()
-        lines.append(s + ' ')
+        new_words = [word for word in new_words if is_english(word)]
+
+        
+        new_sentence = ' '.join(new_words)
+        
+        if new_sentence:  
+            new_sentence = new_sentence.capitalize()   #capitalize first letters
+
+
+            if not new_sentence.endswith((".", "?", "!")): #punctuation
+                new_sentence += "."    
+                        
+            lines.append(new_sentence + ' ')
     
     text = ''.join(lines)
-    
+
     return text
 
 def sentiment(lyrics):
@@ -90,9 +125,9 @@ def sentiment(lyrics):
 
     def analyzing_sentiment(text):
         sentiment_dict = analyzer.polarity_scores(text)
-        if sentiment_dict['compound'] >= 0.05:
+        if sentiment_dict['compound'] >= 0.1:
             sentiment = 'positive'
-        elif sentiment_dict['compound'] <= -0.05:
+        elif sentiment_dict['compound'] <= -0.1:
             sentiment = "negative"
         else: 
             sentiment = "neutral"
@@ -115,25 +150,44 @@ def sentiment(lyrics):
 
     return sentiment_results
 
+def own_sentiment():
+
+    nltk_lexicon = {
+    'positive' : set(nltk.corpus.opinion_lexicon.positive()), # Why cast to a set?
+    'negative' : set(nltk.corpus.opinion_lexicon.negative())
+    }
+
+    
+
+
 def graph_sentiment(sentiment_results):
-        compound_scores = [sentiment['compound'] for sentiment in sentiment_results]
-        overall_sentiments = [sentiment['Overall sentiment'] for sentiment in sentiment_results]
 
-        plt.bar(range(1, len(compound_scores) + 1), compound_scores, color=['green' if sentiment == 'positive' else 'red' if sentiment == 'negative' else 'grey' for sentiment in overall_sentiments])
+    compound_scores = [sentiment['compound'] for sentiment in sentiment_results]
+    overall_sentiments = [sentiment['Overall sentiment'] for sentiment in sentiment_results]
 
-        for i, score in enumerate(compound_scores):
-            if score == 0:
-                plt.hlines(y=score, xmin= i + 0.75, xmax= i + 1.25, color='grey', linestyle='--')
+    colors = ['limegreen' if sentiment == 'positive' else 'crimson' if sentiment == 'negative' else 'lightgrey' for sentiment in overall_sentiments]
 
-        plt.xlabel('Song')
-        plt.ylabel('Compound Sentiment Score')
-        plt.title('Sentiment Analysis of Top 5 Songs')
-        plt.xticks(range(1, len(compound_scores) + 1), songs5, fontsize=8)
-        plt.yticks([-1, -0.5, 0, 0.5, 1], ['-1 (Negative)', '-0.5', '0 (Neutral)', '0.5', '1 (Positive)'])
+    plt.figure(figsize=(10, 6))
+    plt.bar(range(1, len(compound_scores) + 1), compound_scores, color=colors, edgecolor='black', width=0.6)
 
-        # Save the graph as an image file
-        plt.savefig('top5_sentiment_analysis.png')
+    for i, score in enumerate(compound_scores):
+        if score == 0:
+            plt.hlines(y=score, xmin=i + 0.7, xmax=i + 1.3, color='black', linestyle='-', linewidth=1)
 
+    #labels
+    for i, score in enumerate(compound_scores):
+        plt.text(i + 1, score + 0.05, f'{score:.2f}', ha='center', fontsize=8)
+
+    plt.xlabel('Song')
+    plt.ylabel('Sentiment Score')
+    plt.title('Sentiment Analysis of Top 5 Songs Listened to by User') 
+    plt.xticks(range(1, len(compound_scores) + 1), songs5, fontsize=8)
+
+    #labels
+    plt.yticks(np.arange(-1, 1.1, 0.5), ['-1 (Negative)', '-0.5', '0 (Neutral)', '0.5', '1 (Positive)'])
+
+    plt.tight_layout() 
+    plt.savefig('top5_sentiment_analysis.png')
 
 
 if __name__ == "__main__":

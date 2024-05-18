@@ -9,13 +9,15 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.cluster import KMeans
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, accuracy_score, precision_recall_fscore_support
 from nltk.tokenize import sent_tokenize, word_tokenize, RegexpTokenizer
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import plotly.express as px
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
+from sklearn.model_selection import cross_val_score
+from sklearn.metrics import silhouette_score
+
 
 
 data = pd.read_csv('data_with_sentiment.csv')
@@ -55,7 +57,7 @@ plt.clf()
 plt.hist(data['Sentiment Scores'], bins=20, color='gray')
 plt.xlabel('Sentiment Score')
 plt.ylabel('Frequency')
-plt.title('Number of Lyrics vs Distribution of Sentiment Scores')
+plt.title('Distribution of Sentiment Scores')
 plt.savefig('sentiment_histogram_with_wordcount.png')
 
 "---------------------------------------------------------------------------------"
@@ -89,6 +91,7 @@ for i in range(len(top_scores)):
         print(" Song", j+1, " ", data['song'][indx], "; Score: ", data['Sentiment Scores'][indx])
 
 print()
+
 "---------------------------------------------------------------------------------"
 
 #K-means with 5 clusters
@@ -101,16 +104,20 @@ cluster_labels = kmeans.labels_
 def kmeans_recommend(top_scores, k=5):
     recs = []
     for score in top_scores:
-        top_cluster = kmeans.predict(np.array(score).reshape(1, -1))[0]  
+
+        best = kmeans.predict(np.array(score).reshape(1, -1))[0]  
         
-        cluster_indices = np.where(cluster_labels == top_cluster)[0]
+        cluster_i = np.where(cluster_labels == best)[0]
         
-        scores_array = np.array(scores).reshape(-1, 1)  
-        cluster_indices = np.setdiff1d(cluster_indices, np.where(np.isin(scores_array, score))[0])
+        scores_arr = np.array(scores).reshape(-1, 1)  
+
+        cluster_i = np.setdiff1d(cluster_i, np.where(np.isin(scores_arr, score))[0])
+
+        len_clusteri = len(cluster_i)
         
-        recommended_indices = np.random.choice(cluster_indices, size=min(k, len(cluster_indices)), replace=False)
+        rec_indices = np.random.choice(cluster_i, size=min(k, len_clusteri), replace=False)
         
-        recs.append(data.iloc[recommended_indices])
+        recs.append(data.iloc[rec_indices])
     
     return recs
 
@@ -119,6 +126,12 @@ recommended_songs = kmeans_recommend(top_scores)
 for i, songs in enumerate(recommended_songs):
     print(f"Top {i+1} Recommended Songs:")
     print(songs[['song', 'artist', 'Sentiment Scores']])
+
+print()
+
+
+sil = silhouette_score(scores, cluster_labels)
+print(f"Silhouette Score for K-means clustering with 5 clusters: {sil}")
 
 print()
 "---------------------------------------------------------------------------------"
@@ -148,7 +161,12 @@ y_pred = nb_classifier.predict(X_test)
 
 print()
 
+
+#Evaluating Naive Bayes
 print("Naive Bayes classification report:", classification_report(y_test, y_pred, zero_division=1))
+accuracy = accuracy_score(y_test, y_pred)
+print("Naive Bayes Accuracy:", accuracy)
+
 
 print()
 
@@ -193,7 +211,11 @@ y_pred = logistic_classifier.predict(X_test)
 
 print()
 
+#Evaluating Logistic
 print("Logistic classification report:", classification_report(y_test, y_pred))
+accuracy = accuracy_score(y_test, y_pred)
+print("Logistic Regression Accuracy:", accuracy)
+ 
 
 print()
 
@@ -208,21 +230,3 @@ print()
 
 "---------------------------------------------------------------------------------"
 
-# def song_recs(sentence):
-#   my_tokenizer = RegexpTokenizer("[\w']+|\$[\d\.]+")
-#   clean_words = my_tokenizer.tokenize(sentence.lower())
-    
-#   cleaned_sentence =  ' '.join(clean_words)
- 
-#   sid_obj = SentimentIntensityAnalyzer()
- 
-#   sentiment_dict = sid_obj.polarity_scores(cleaned_sentence)
-
-#   mask= (data["Sentiment Scores"]>(sentiment_dict['compound']))
-    
-#   recs = data[mask].sort_values(by="Sentiment Scores")[:10]
-  
-#   return recs[["artist", "song", "Sentiment Scores"]]
-
-# for i in tp.top5_lyrics:
-    # print(song_recs(i))
