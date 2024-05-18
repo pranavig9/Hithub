@@ -3,13 +3,17 @@ import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from lyricsgenius import Genius
+import nltk
+from nltk.corpus import stopwords
 import argparse
+from evaluate_perf import compare
 
 GENIUS_API_TOKEN='tHOsGvtPGWYle78o8rb6yQ5DZWMtcByUoopigVqRmn9Vi3KbZaSCiVrWnSwpZTXm'
 
 def preprocess(fp):
   data = pd.read_csv(fp)
-  data = data.sample(n=8000).drop('link', axis=1).reset_index(drop=True)
+  if 'link' in data.columns:
+    data = data.drop('link', axis=1).reset_index(drop=True)
   data['artsong'] = data.apply(lambda row: row['artist']+row['song'],axis = 1)
   data = data.drop_duplicates('artsong')
   # data = data[['artist_name','id','track_name','danceability', 'energy', 'key', 'loudness', 'mode', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo']]
@@ -42,20 +46,32 @@ def scrape_lyrics(artistname, songname):
   return song.lyrics
 
 def recommend_songs(data, rec):
+  stopwords_lyrics = stopwords.words('english')
   artist = rec["artist name"]
   song = rec["song name"]
   if song not in data["song"]:
     lyrics = scrape_lyrics(artist, song)
     data.loc[len(data.index)] = [artist, song, lyrics]
-  tf_idf = TfidfVectorizer(analyzer='word', stop_words='english')
-  vectorized_lyrics = tf_idf.fit_transform(data['text'])
+  lyrics_vectorizer = TfidfVectorizer(
+    encoding='utf-8',
+    strip_accents='unicode',
+    lowercase=True,
+    stop_words=stopwords_lyrics,
+    min_df=2,
+    max_df=0.9,
+    binary=False,
+    norm='l2',
+    use_idf=False,
+    max_features=5000
+)
+  vectorized_lyrics = lyrics_vectorizer.fit_transform(data['text'])
   cosine_sim = cosine_similarity(vectorized_lyrics)
   sim = {}
   for i in range(len(cosine_sim)):
-    similar_indices = cosine_sim[i].argsort()[:-50:-1] 
+    similar_indices = cosine_sim[i].argsort()[:-50:-1][1:]
     sim[data['song'].iloc[i]] = [(cosine_sim[i][x], data['song'][x], data['artist'][x]) for x in similar_indices][1:]
 
-  recommend(rec, sim)
+  return recommend(rec, sim), data
   
 def recommend_playlist(input_playlist, data_fp, num_songs):
   playlist = pd.read_csv(input_playlist)
@@ -69,10 +85,27 @@ def recommend_playlist(input_playlist, data_fp, num_songs):
     recs.append(rec)
   new_playlist = []
   for rec in recs:
-    recommended_songs = recommend_songs(data, rec)
-    new_playlist.append(recommend_songs)
+    recommended_songs, new_data = recommend_songs(data, rec)
+    new_playlist.append(recommended_songs)
+
+  new_data.to_csv('spotify_millsongdata.csv')
 
   return new_playlist
+
+def evaluate_playlist(input_playlist, outputted_playlist, num_songs):
+  playlist = pd.read_csv(input_playlist)
+  for i in range(len(playlist)):
+    song = playlist.loc[i, 'song']
+    artist = playlist.loc[i, 'artist']
+    print(f"Song: {song}")
+    print(f"Artist: {artist}")
+    for j in range(num_songs):
+      output_song = outputted_playlist[i][j][1]
+      output_artist = outputted_playlist[i][j][2]
+      print(f"Recommened Song: {output_song}")
+      most_common_words = compare(song, artist, output_song, output_artist)
+      print(f"Most Common Words: {' '.join(most_common_words)}")
+
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
@@ -82,3 +115,5 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   new_playlist = recommend_playlist(args.top5_songs, args.data_path, int(args.num_songs))
+  # new_playlist = [[(0.6090642393449999, 'Chiquita', 'Aerosmith'), (0.6035552437489646, 'For You To Love', 'Luther Vandross'), (0.5934304589578079, 'Love Is Dangerous', 'Fleetwood Mac')], [(0.5612663413205756, "You Don't Love Me (No, No, No)", 'Rihanna'), (0.5310446240737012, 'But You Know I Love You', 'Waylon Jennings'), (0.5284001118749688, 'Yes I Do', 'Rascal Flatts')], [(0.8975209606514932, 'Somebody Loves You', 'Marianne Faithfull'), (0.8853818401504832, 'Birthday Song', 'Madonna'), (0.8702737247476661, 'I Believe In You', 'Dusty Springfield')], [(0.6548001287515242, 'Upsetter', 'Grand Funk Railroad'), (0.6530754106590009, 'Locked Out Of Heaven', 'Bruno Mars'), (0.6253150949974127, "I've Got A Feeling", 'Pearl Jam')], [(0.8497257782985548, 'plot twist', 'TWS'), (0.8067483457693106, 'Somebody Loves You', 'Marianne Faithfull'), (0.7890071357555971, 'Birthday Song', 'Madonna')]]
+  evaluate_playlist(args.top5_songs, new_playlist, int(args.num_songs))
