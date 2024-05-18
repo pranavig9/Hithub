@@ -16,8 +16,8 @@ import matplotlib.pyplot as plt
 
 nltk.download('words')
 nltk.download('vader_lexicon')
-df = pd.read_csv('output/top5_songs.csv')
-data = gp.read_dataset('consolidated_data.csv')
+df = pd.read_csv('get_top5/output/top5_songs.csv')
+data = pd.read_csv('consolidated_data.csv')
 
 artists5 = df['artist'].tolist()
 songs5 = df['song'].tolist()

@@ -11,7 +11,7 @@ if __name__ == "__main__":
     pull.get_top5()
     pull.json_to_csv()
 
-    usertop5 = pd.read_csv('output/top5_songs.csv')
+    usertop5 = pd.read_csv('get_top5/output/top5_songs.csv')
     track_data = pd.read_csv("consolidated_data.csv")
     song_names = []
     print("Pulled top 5 songs")
@@ -39,6 +39,9 @@ if __name__ == "__main__":
         ##USE KNN recommender to generate song titles
     print("Beginning Recommending Songs")
     playlist_content = song_recs.returnRecommendSongs(track_data)
+    playlist_content_inter = get_data.recommend_playlist('get_top5/output/top5_songs.csv', "spotify_millsongdata.csv", 3)
+    playlist_content2 = get_data.update_format(playlist_content_inter, 3)
+    playlist_content = playlist_content + playlist_content2
     # print(playlist_content)
         ##USE LDA TOPIC MODELING TO GET LYRICS 
     print("Creating playlist title")

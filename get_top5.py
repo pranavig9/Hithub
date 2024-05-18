@@ -26,15 +26,15 @@ def get_top5():
         for song in range(5):
             list = []
             list.append(results)
-            if os.path.exists('output/top5_data.json'):
-                os.remove('output/top5_data.json')
-            with open('output/top5_data.json', 'w', encoding='utf-8') as f:
+            if os.path.exists('get_top5/output/top5_data.json'):
+                os.remove('get_top5/output/top5_data.json')
+            with open('get_top5/output/top5_data.json', 'w', encoding='utf-8') as f:
                 json.dump(list, f, ensure_ascii=False, indent=4)
     else:
         print("Can't get token for", username)
 
 def json_to_csv():
-    with open('output/top5_data.json') as f:
+    with open('get_top5/output/top5_data.json') as f:
         data = json.load(f)
 
     list_of_results = data[0]["items"]
@@ -83,7 +83,7 @@ def json_to_csv():
 
     # print(list_of_track_ids)
 
-    all_songs_saved = top5.to_csv('output/top5_songs.csv')
+    all_songs_saved = top5.to_csv('get_top5/output/top5_songs.csv')
 
 def get_song_info(song_name, artist_name):
     # Initialize Spotipy client
