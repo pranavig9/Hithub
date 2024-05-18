@@ -9,8 +9,8 @@ sentiment_data = pd.read_csv("data_with_sentiment.csv")
 
 # clumns = ['artist', 'song', 'sentiment', 'popularity', 'duration_ms', 'explicit', 'lyrics']
 # total_data = pd.DataFrame(columns=clumns)
-
-for i in range(17701, len(sentiment_data)):
+# print(sentiment_data.iloc[37230])
+for i in range(37230, len(sentiment_data)):
     track = sentiment_data.iloc[i]
     artist = track['artist']
     song = track['song']

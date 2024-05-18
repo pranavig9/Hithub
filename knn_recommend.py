@@ -21,7 +21,7 @@ def returnRecommendSongs(data):
         top_scores.append(s['compound'])
     top_scores = np.array(top_scores).reshape(-1, 1)
     scores = np.array(scores).reshape(-1, 1)
-    features = np.column_stack((scores, popularity, duration_ms, explicit))
+    features = np.column_stack((scores, popularity, explicit))
     # print(features.shape())
     knn_model = NearestNeighbors(n_neighbors=k, metric='euclidean')
     knn_model.fit(features)
