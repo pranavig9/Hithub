@@ -6,6 +6,7 @@ import re
 import top5_sentiment as tp
 import matplotlib.pyplot as plt
 from sklearn.neighbors import NearestNeighbors
+# from sklearn.preprocessing import OneHotEncoder
 
 
 def returnRecommendSongs(data):
@@ -14,19 +15,19 @@ def returnRecommendSongs(data):
     popularity = data['popularity'].tolist()
     duration_ms = data['duration_ms'].tolist()
     explicit = data['explicit'].tolist()
-    k = 10
+    k = 3
     sentiment_results = tp.sentiment(tp.top5_lyrics)
     top_scores = []
     for s in sentiment_results:
         top_scores.append(s['compound'])
     top_scores = np.array(top_scores).reshape(-1, 1)
     scores = np.array(scores).reshape(-1, 1)
-    features = np.column_stack((scores, popularity, explicit))
+    features = np.column_stack((scores, popularity,explicit))
     # print(features.shape())
     knn_model = NearestNeighbors(n_neighbors=k, metric='euclidean')
     knn_model.fit(features)
     distances, indices = knn_model.kneighbors(features)
-    num_recommendations = 10
+    num_recommendations = 3
     playlist_content = []
     for i in range(len(top_scores)):
         # print("Top", num_recommendations, "recommended songs for top song", i+1)
